@@ -10,3 +10,6 @@ context/
 
 # Session handoff memory (personal, like context/)
 memory.md
+
+# Prior-cycle personal context — internal, like context/
+context-v1/

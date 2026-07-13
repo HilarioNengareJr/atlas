@@ -1,0 +1,9 @@
+# OS
+.DS_Store
+
+# Secrets — enforced by `atlas doctor` later; start honest now
+.env
+.env.*
+
+# Personal context tooling (Flow templates) — not a team artifact
+context/

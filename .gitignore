@@ -7,3 +7,6 @@
 
 # Personal context tooling (Flow templates) — not a team artifact
 context/
+
+# Session handoff memory (personal, like context/)
+memory.md

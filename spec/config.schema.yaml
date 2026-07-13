@@ -1,0 +1,47 @@
+schema_version: 1
+# Atlas config — Atlas's settings.py (plan §3.3). Configuration is code:
+# this file is committed. Secrets are environment: values live in .env
+# (gitignored, enforced by `atlas init`), referenced here by name only.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:atlas:spec:config:1"
+title: Atlas project config (atlas.config)
+description: >-
+  Declares which MCPs the project uses and which SDLC slot each serves. The
+  generated MCP config is compiled from this declaration plus env by
+  `atlas sync` — a build artifact, never hand-edited. An MCP with no slot
+  does not get generated; here that is schema-invalid, not merely ignored.
+type: object
+additionalProperties: false
+required:
+  - schema_version
+  - mcps
+properties:
+  schema_version:
+    const: 1
+  mcps:
+    type: object
+    propertyNames:
+      pattern: "^[a-z0-9][a-z0-9-]*$"
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      required: [slot]
+      properties:
+        slot:
+          enum: [survey, chart, build, verify, log, meta]
+          description: >-
+            The single SDLC slot this MCP fills (plan §4.2). Do not add a
+            seventh slot type until dogfooding demands it.
+        env:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            pattern: "^[A-Z][A-Z0-9_]*$"
+          description: >-
+            Names of the environment variables this MCP needs (values in
+            .env). `atlas init` asks only for the ones that are missing.
+        notes:
+          type: string
+          description: Optional human note — why this MCP, any quirks.
+    description: Keyed by MCP name. Empty object is legal — slots are optional, the declaration is not.

@@ -1,0 +1,102 @@
+schema_version: 1
+# Atlas skill manifest — the keystone of the skills system (plan §3.7).
+# Everything declares itself: not just what it is, but what it owes.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:atlas:spec:manifest:1"
+title: Atlas skill manifest
+description: >-
+  Every skill declares its name, the single lifecycle stage it serves, what it
+  reads (consumes), what it is responsible for keeping true (maintains), which
+  record types it emits, and which MCP slots it requires. The ownership matrix
+  (every Map entry type has at least one maintainer) is a cross-manifest
+  property checked by `atlas validate`, not by this schema.
+type: object
+additionalProperties: false
+# No dependency field exists at all — one stage per skill and no
+# skill-to-skill dependencies are v1 law, enforced here by absence.
+required:
+  - schema_version
+  - name
+  - stage
+  - consumes
+  - maintains
+  - emits
+  - requires_slots
+properties:
+  schema_version:
+    const: 1
+    description: Version of the manifest schema this document conforms to.
+  name:
+    type: string
+    pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    description: >-
+      Kebab-case skill name. Atlas core skills use the `atlas-` prefix;
+      whether contrib skills need a namespace is punted (PUNTS.md P1).
+  description:
+    type: string
+    description: >-
+      One human-readable line saying what the skill does. Optional — the
+      manifest is for machines; docs are for humans (PUNTS.md P2).
+  stage:
+    enum: [survey, chart, build, verify, log, meta]
+    description: >-
+      The single lifecycle stage this skill serves. Exactly one — a skill
+      that wants two stages is two skills. The stage implies the artifact a
+      skill produces (chart → plan); there is no separate `produces` field.
+  consumes:
+    type: array
+    uniqueItems: true
+    items:
+      $ref: "#/$defs/consumable"
+    description: >-
+      What the skill reads to do its job: Map entry types, plus the
+      approved-plan artifact for build/verify-stage skills. An entry type
+      nothing consumes is dead weight — flagged by `atlas help`.
+  maintains:
+    type: array
+    uniqueItems: true
+    items:
+      $ref: "#/$defs/map_entry_type"
+    description: >-
+      Map entry types this skill is responsible for keeping true. May be
+      empty for a single skill, but every entry type needs at least one
+      maintainer across the installed set — an unmaintained type is
+      staleness by design (`atlas validate` checks this).
+  emits:
+    type: array
+    uniqueItems: true
+    items:
+      enum: [decision, context-gap]
+    description: >-
+      Record types the skill can produce (see records.schema.yaml). Empty is
+      legal — following the plan verbatim is silent.
+  requires_slots:
+    type: array
+    uniqueItems: true
+    items:
+      enum: [survey, chart, build, verify, log, meta]
+    description: >-
+      MCP slot types the skill needs filled to function. `atlas init`
+      validates these up front. No slot, no config entry.
+$defs:
+  map_entry_type:
+    # CANONICAL LIST: map.schema.yaml `type` enum. This copy (and the one in
+    # records.schema.yaml `expected_in`) MUST stay identical to it — the
+    # schemas are deliberately self-contained files, so the three-way sync is
+    # unchecked until `atlas validate` owns it (PUNTS.md P8).
+    enum:
+      - architecture
+      - conventions
+      - decisions
+      - sensitive-zones
+      - components
+      - library-manifest
+      - standup-ledger-slot
+    description: The Map entry types (map.schema.yaml owns this list's semantics).
+  consumable:
+    anyOf:
+      - $ref: "#/$defs/map_entry_type"
+      - const: approved-plan
+    description: >-
+      approved-plan is an artifact, not a Map entry type — build/verify
+      skills read the plan itself. Found during the retrofit test (PUNTS.md P7).

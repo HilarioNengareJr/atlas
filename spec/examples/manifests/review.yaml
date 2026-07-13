@@ -1,0 +1,24 @@
+# Retrofit test (task 1.5): the real Flow /review skill as an Atlas manifest.
+schema_version: 1
+name: review
+description: >-
+  Verify a built feature against the plan, the system architecture, and
+  production readiness. Reports; never fixes.
+stage: verify
+consumes:
+  - approved-plan
+  - architecture
+  - conventions
+  - components
+maintains: []
+emits: []
+# Hesitation 6: /review's three-layer findings are exactly what soft-conflict
+# batching wants, and its plan-alignment layer is a footprint reconciliation
+# by hand — but it emits chat prose, not records. Declaring nothing is the
+# truth. The M3 rewrite gives it `emits: [decision]` when findings become
+# records.
+requires_slots: []
+# Hesitation 7: the verify MCP slot (test runner, CI) sounds like /review's
+# natural dependency, but the Flow skill only reads code and reports — it
+# runs nothing that needs an MCP. Declaring a slot it doesn't use would make
+# `atlas init` demand configuration for nothing.

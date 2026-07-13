@@ -1,0 +1,26 @@
+# Retrofit test (task 1.5): the real Flow /build skill as an Atlas manifest.
+schema_version: 1
+name: build
+description: >-
+  Take a confirmed plan, ground it in the real codebase, surface conflicts,
+  build in dependency order, verify, and report.
+stage: build
+consumes:
+  - approved-plan
+  # Hesitation 4 (the big one): /build's primary input is the plan itself,
+  # which is not a Map entry type. The consumable vocabulary had to grow an
+  # `approved-plan` artifact value (PUNTS.md P7).
+  - architecture
+  - conventions
+  - components
+  - library-manifest
+maintains: []
+# Hesitation 5: /build DOES hand-maintain context/progress-tracker.md — the
+# one thing a Flow skill keeps true. But "progress" is not a Map entry type:
+# plan §3.9 derives progress from records and cuts anything that can't be
+# derived. So the single maintained thing in Flow is the thing Atlas
+# automates out of existence. maintains stays empty — honestly.
+emits: []
+# /build's report narrates divergences from the plan — embryonic decision
+# records, in prose. Not schema-shaped yet, so not declared.
+requires_slots: []

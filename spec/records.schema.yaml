@@ -1,0 +1,109 @@
+schema_version: 1
+# Atlas records — the decision stream and the context-gap signal (plan §3.4, §3.9).
+# A record exists only when something deviated or was missing; following the
+# approved plan verbatim is silent.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:atlas:spec:records:1"
+title: Atlas record (decision or context-gap)
+description: >-
+  One record per document. A decision record is recordable when the agent
+  deviates from or interprets the approved plan. A context-gap record is
+  emitted when a skill had to discover information mid-task that its consumed
+  context should have provided. Records become citizens of the Map via Log.
+  Every field had to survive the "useful in six months?" test.
+oneOf:
+  - $ref: "#/$defs/decision"
+  - $ref: "#/$defs/context_gap"
+$defs:
+  envelope:
+    # Shared fields — subschemas extend this and pin their own `type`.
+    type: object
+    required:
+      - schema_version
+      - id
+      - type
+      - task
+      - skill
+      - created_at
+    properties:
+      schema_version:
+        const: 1
+      id:
+        type: string
+        pattern: "^[a-z0-9][a-z0-9-]*$"
+        description: >-
+          Kebab-case identifier, unique within the task that created it.
+          A global uniqueness scheme is punted (PUNTS.md P4).
+      type:
+        enum: [decision, context-gap]
+      task:
+        type: string
+        description: The task (plan id) this record was created under.
+      skill:
+        type: string
+        description: Name of the skill that emitted the record.
+      created_at:
+        type: string
+        format: date-time
+        # format asserts nothing by default in draft 2020-12 — the pattern is
+        # what actually rejects garbage until atlas validate enables
+        # format-assertion.
+        pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+  decision:
+    allOf:
+      - $ref: "#/$defs/envelope"
+    type: object
+    unevaluatedProperties: false
+    required: [what, alternatives, why, plan, clause]
+    properties:
+      type:
+        const: decision
+      what:
+        type: string
+        description: The deviation or interpretation, stated plainly.
+      alternatives:
+        type: array
+        items:
+          type: string
+        description: >-
+          What else was considered. Required even when empty — an empty list
+          is an explicit "no alternatives considered", never an omission.
+      why:
+        type: string
+        description: The reasoning that picked the winner.
+      plan:
+        type: string
+        description: Id of the plan being deviated from (plan.schema.yaml `id`).
+      clause:
+        type: string
+        pattern: "^s[1-9][0-9]*$"
+        description: The plan step this decision addresses.
+  context_gap:
+    allOf:
+      - $ref: "#/$defs/envelope"
+    type: object
+    unevaluatedProperties: false
+    required: [missing, expected_in]
+    properties:
+      type:
+        const: context-gap
+      missing:
+        type: string
+        description: The information the skill had to discover mid-task.
+      expected_in:
+        # CANONICAL LIST: map.schema.yaml `type` enum — this copy MUST stay
+        # identical to it (three-way sync with manifest.schema.yaml; PUNTS.md P8).
+        anyOf:
+          - enum:
+              - architecture
+              - conventions
+              - decisions
+              - sensitive-zones
+              - components
+              - library-manifest
+              - standup-ledger-slot
+          - const: approved-plan
+        description: >-
+          Where the information should have been. The responsible maintainer
+          is not a field — it is derived from the ownership matrix at read
+          time; if it can't be derived, that's a validate failure, not data.

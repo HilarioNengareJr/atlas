@@ -1,0 +1,29 @@
+# Retrofit test (task 1.5): the real Flow /architect skill expressed as an
+# Atlas manifest. Hesitations while writing this are schema bugs — logged
+# inline and in the build report.
+schema_version: 1
+name: architect
+# Hesitation 1: name isn't atlas-prefixed — schema pattern had to allow
+# unprefixed kebab names. Namespacing punted (PUNTS.md P1).
+description: >-
+  Think through a feature with the developer before code — align language,
+  surface decisions, write the implementation plan.
+stage: chart
+consumes:
+  - architecture
+  - conventions
+  - components
+  - library-manifest
+# Hesitation 2: /architect PRODUCES the plan, and the manifest has no
+# `produces` field. Resolved: the stage implies the artifact (chart → plan);
+# a produces field would let a chart skill claim otherwise — worse.
+maintains: []
+# Predicted finding holds here: /architect reads four entry types and keeps
+# none of them true. It appends plans to context/architecture.md, but the
+# plan is an artifact, not a Map entry type.
+emits: []
+# Hesitation 3: /architect records decisions in its plan entries — prose,
+# not schema-shaped records. Emitting `decision` here would be aspirational,
+# and a manifest that lies is worse than one that's modest. Empty until the
+# M3 rewrite makes it true.
+requires_slots: []

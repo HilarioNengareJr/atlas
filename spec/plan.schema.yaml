@@ -1,0 +1,84 @@
+schema_version: 1
+# Atlas plan — the contract the human approves before anything is built
+# (plan §3.1 Chart, §5 step 3). Approval is a code review.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:atlas:spec:plan:1"
+title: Atlas plan
+description: >-
+  A structured plan produced by the Chart stage: addressable steps, a declared
+  footprint (blast radius as globs — one contract serving both edit
+  reconciliation and context selection), verification criteria, and Map
+  citations. How human approval is recorded is punted (PUNTS.md P3).
+type: object
+additionalProperties: false
+required:
+  - schema_version
+  - id
+  - title
+  - steps
+  - footprint
+  - verification
+  - citations
+properties:
+  schema_version:
+    const: 1
+  id:
+    type: string
+    pattern: "^[a-z0-9][a-z0-9-]*$"
+    description: Kebab-case plan id — what decision records cite as `plan`.
+  title:
+    type: string
+  steps:
+    type: array
+    minItems: 1
+    # uniqueItems rejects byte-identical duplicate steps. It does NOT catch
+    # two different steps sharing an id — per-property uniqueness is not
+    # expressible in JSON Schema; that cross-item check belongs to
+    # `atlas validate` (PUNTS.md P9).
+    uniqueItems: true
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, description, done_when]
+      properties:
+        id:
+          type: string
+          pattern: "^s[1-9][0-9]*$"
+          description: >-
+            Stable step id (s1, s2, …). Ids are never renumbered; a removed
+            step keeps its id and sets `tombstone: true` so records citing it
+            never dangle.
+        description:
+          type: string
+        done_when:
+          type: string
+          description: Observable completion criterion for this step alone.
+        tombstone:
+          type: boolean
+          description: True when the step was removed after approval.
+    description: Addressable steps — the clauses decision records point at.
+  footprint:
+    type: array
+    minItems: 1
+    items:
+      type: string
+    description: >-
+      File globs declaring the blast radius. Edits inside are silent; outside
+      become soft conflicts; Map-marked sensitive zones hard-conflict. Also
+      the relevance filter for task-context compilation (§3.9).
+  verification:
+    type: array
+    minItems: 1
+    items:
+      type: string
+    description: >-
+      Criteria that decide Verify — each machine-checkable in principle, even
+      while checking is still human.
+  citations:
+    type: array
+    items:
+      type: string
+    description: >-
+      Ids of the Map entries this plan is grounded in. May be empty (a
+      greenfield task on an empty Map), but Chart should cite what it read —
+      recency of citations feeds staleness reporting.

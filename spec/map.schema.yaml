@@ -1,0 +1,88 @@
+schema_version: 1
+# Atlas Map entry — the stock at the center of the loop (plan §3.2, task 1.4).
+# The Map is a directory of files: map/<type>/<id>.yaml, one entry per file,
+# git-versioned, legible without Atlas installed. This schema validates ONE
+# entry file; the directory layout is convention, checked by `atlas validate`.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:atlas:spec:map-entry:1"
+title: Atlas Map entry
+description: >-
+  One unit of accumulated understanding. Every entry carries staleness
+  metadata (created_by_task, last_confirmed) so freshness is a checkable
+  property, and a paths scope that feeds footprint-driven context selection.
+  Entry types are only what the other schemas proved necessary.
+type: object
+additionalProperties: false
+required:
+  - schema_version
+  - id
+  - type
+  - summary
+  - created_by_task
+  - last_confirmed
+properties:
+  schema_version:
+    const: 1
+  id:
+    type: string
+    pattern: "^[a-z0-9][a-z0-9-]*$"
+    description: Kebab-case entry id — what plan citations point at. Matches the filename.
+  type:
+    # CANONICAL LIST. Copies live in manifest.schema.yaml ($defs
+    # map_entry_type) and records.schema.yaml (expected_in) — change all
+    # three together (PUNTS.md P8).
+    enum:
+      - architecture
+      - conventions
+      - decisions
+      - sensitive-zones
+      - components
+      - library-manifest
+      - standup-ledger-slot
+    description: >-
+      The entry's type — matches its directory under map/.
+      standup-ledger-slot is reserved for the post-launch atlas-standup
+      skill; nothing consumes or maintains it in v1 (PUNTS.md P6).
+  summary:
+    type: string
+    description: >-
+      One line a human can trust at a glance. The Map is legible without
+      Atlas installed — this line is where that promise lives.
+  content:
+    type: [string, object]
+    description: >-
+      The body of the entry — free-form in v1. Per-type structure is
+      deliberately deferred until dogfooding shows which fields earn their
+      keep (PUNTS.md P5).
+  paths:
+    type: array
+    items:
+      type: string
+    description: >-
+      Glob scope of this entry. Absent or empty means repo-wide. This is the
+      field footprint-driven context selection matches against — selection
+      converts the stock into usable flow (§3.9).
+  created_by_task:
+    type: string
+    description: Plan id of the task that deposited this entry.
+  last_confirmed:
+    type: string
+    format: date-time
+    # format asserts nothing by default in draft 2020-12 — the pattern is
+    # what actually rejects garbage until atlas validate enables
+    # format-assertion. Staleness math depends on this parsing.
+    pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    description: >-
+      When this entry was last verified true against reality. Staleness is
+      derived (now - last_confirmed), never stored.
+allOf:
+  # A sensitive zone IS a scoped warning — an unscoped one is meaningless.
+  - if:
+      properties:
+        type:
+          const: sensitive-zones
+    then:
+      required: [paths]
+      properties:
+        paths:
+          minItems: 1

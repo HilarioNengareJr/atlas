@@ -93,3 +93,38 @@ uses JSON where the project's naming convention implies YAML instances elsewhere
 candidate, not an adopted decision. Interim: `atlas validate --schema=plan|records <file>`
 takes an explicit override. **Forces a decision:** whenever `atlas plan`/`atlas build`
 (M4.6) need a real location to write these artifacts to.
+
+## P12 — MCP reachability is declared, not proven (config)
+
+`atlas doctor` (M4.2) checks that every MCP in `atlas.config` is *declared*
+correctly — a slot the schema recognizes, and every name in its `env` list
+resolving to a non-empty value. It does not open a connection, so a
+perfectly-declared MCP whose server is down, misconfigured, or unreachable
+still passes. Proving reachability needs an MCP client in Go, which nothing in
+M4 builds, plus a policy on timeouts and on tests that must not touch the
+network. **Forces a decision:** whenever a real dogfood session loses time to
+an MCP that doctor called healthy.
+
+## P13 — The Map staleness threshold is hardcoded (map, config)
+
+`atlas doctor` flags a Map entry stale at `now - last_confirmed > 30 days`. The
+number is a constant in the doctor package: no schema field holds it, and
+adding one to `config.schema.yaml` for a single tunable was scope M4.2 did not
+own. Different entry types plausibly deserve different windows — `decisions`
+ages very differently from `components`. **Forces a decision:** the first time
+30 days is visibly wrong on a real Map (M3-style use, or M4.5 `atlas init`).
+
+## P14 — Atlas's schemas are not reachable from a user's repo (spec, all schemas)
+
+`atlas validate` and `atlas doctor` both locate `spec/*.schema.yaml` by walking
+upward from the target for `spec/manifest.schema.yaml`. That only ever succeeds
+inside the Atlas repo itself — a real Atlas-configured project has an
+`atlas.config` and a `map/`, but no `spec/`. M4.1 shipped with this: validate
+exits 2 on such a repo. M4.2 refuses to inherit it for the checks that don't
+need schemas, so doctor degrades — an unreachable `spec/` becomes one Finding
+and every non-schema check still runs. The real fix is `go:embed`-ing the five
+schemas into the binary, which is small but raises the question this punt is
+really about: when a repo carries its *own* `spec/`, does the repo's copy or
+the binary's win? Skew between a user's pinned schemas and a newer binary is
+exactly what `atlas migrate` was reserved for. **Forces a decision:** M4.5
+(`atlas init`, which must work on a repo that has no Atlas files at all).

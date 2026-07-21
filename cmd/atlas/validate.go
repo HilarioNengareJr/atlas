@@ -1,10 +1,6 @@
-// Command atlas is Atlas's single Go binary. Today it implements one
-// subcommand, validate (M4.1) — the rest of the seven-command set (init,
-// plan, build, verify, sync, help, doctor) lands in later M4 tasks.
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -12,14 +8,6 @@ import (
 
 	"github.com/HilarioNengareJr/atlas/internal/validate"
 )
-
-func main() {
-	if len(os.Args) < 2 || os.Args[1] != "validate" {
-		fmt.Fprintln(os.Stderr, "usage: atlas validate [--json] [--schema=plan|records] [path]")
-		os.Exit(2)
-	}
-	os.Exit(runValidate(os.Args[2:]))
-}
 
 // runValidate is the whole validate subcommand, split out from main so it
 // returns an exit code instead of calling os.Exit directly — keeps this
@@ -197,33 +185,6 @@ func validateDirectory(root string) ([]validate.Finding, error) {
 	findings = append(findings, ownership...)
 
 	return findings, nil
-}
-
-// findSpecDir walks upward from start looking for a directory containing
-// spec/manifest.schema.yaml, so a single-file target anywhere in the repo
-// (not just the root) still finds the schemas to validate against. Bounded
-// to 10 levels — a real repo is never nested deeper than that below its spec/.
-func findSpecDir(start string) (string, error) {
-	abs, err := filepath.Abs(start)
-	if err != nil {
-		return "", err
-	}
-	dir := abs
-	if info, err := os.Stat(abs); err == nil && !info.IsDir() {
-		dir = filepath.Dir(abs)
-	}
-	for i := 0; i < 10; i++ {
-		candidate := filepath.Join(dir, "spec", "manifest.schema.yaml")
-		if _, err := os.Stat(candidate); err == nil {
-			return filepath.Join(dir, "spec"), nil
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-		dir = parent
-	}
-	return "", errors.New("could not find spec/manifest.schema.yaml above " + start + " — is this inside an Atlas repo?")
 }
 
 // discoveredInstance pairs a found file with the Kind directory-convention

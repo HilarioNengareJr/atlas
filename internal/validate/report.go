@@ -70,11 +70,27 @@ func (f Finding) String() string {
 	return b.String()
 }
 
-// RenderHuman renders every finding, or an explicit clean-pass line when
-// there are none — silence on success is not an acceptable report.
+// RenderHuman renders every finding for atlas validate, or an explicit
+// clean-pass line when there are none — silence on success is not an
+// acceptable report.
 func RenderHuman(findings []Finding) string {
+	return RenderHumanFor("validate", findings)
+}
+
+// RenderHumanFor is RenderHuman for any subcommand: the clean-pass line is
+// the only command-specific string in the whole renderer, so cmd ("validate",
+// "doctor", ...) is all a second command needs to reuse this. Findings
+// themselves are command-agnostic by construction — the three-part standard
+// (code-standards.md Error Handling) says nothing about which command found
+// the problem.
+//
+// This lives here rather than in a shared internal/report package because
+// doctor was the second consumer, not the third; extracting a package the
+// moment a third command needs it (atlas help, M4.7) beats moving types
+// across packages for two.
+func RenderHumanFor(cmd string, findings []Finding) string {
 	if len(findings) == 0 {
-		return "atlas validate: clean — no findings.\n"
+		return "atlas " + cmd + ": clean — no findings.\n"
 	}
 	var b strings.Builder
 	for i, f := range findings {

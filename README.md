@@ -14,9 +14,9 @@ Prompting is the new programming — and it is in its spaghetti phase. Plans, co
 
 ---
 
-## Pages
+## Commands
 
-Atlas has no web pages — the product surface is a CLI. Seven commands total (if v1 needs a ninth, something is wrong):
+The product surface is a CLI. Seven commands total (if v1 needs a ninth, something is wrong):
 
 ```
 atlas init      → doctor checks, survey builds the Map, human blesses it
@@ -29,12 +29,6 @@ atlas doctor    → health: secrets, .env gitignored, MCPs reachable, Map stalen
 ```
 
 Plus `atlas validate` for skill authors; `atlas migrate` reserved (designed in v1, built when first needed).
-
----
-
-## Navigation
-
-No analog — Atlas is a CLI, not a UI; v1 explicitly refuses a dashboard/web UI (the terminal is where users live).
 
 ---
 
@@ -115,12 +109,6 @@ No analog — Atlas is a CLI, not a UI; v1 explicitly refuses a dashboard/web UI
 - Signals/middleware extension hooks, admin panel, project template gallery
 - `atlas-standup` — designated first contrib skill, post-launch
 - Live diffing and rollback
-
----
-
-## PostHog Events
-
-No analog — Atlas has no analytics instrumentation; the observability pair (decision stream + edit stream) is a product feature, not telemetry.
 
 ---
 

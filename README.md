@@ -4,7 +4,7 @@ Atlas is an opinionated, installable, agent-agnostic workflow framework that mak
 
 Atlas is a framework layer over agent runtimes it does not control. It provides conventions, a lifecycle (Survey → Chart → Build → Verify → Log), shared state (the Map), and packaging (skills with manifests, MCP slots, agent adapters). It is not the agent, not an orchestrator, not a UI.
 
-Right now the repo is pre-v0.1: plans, a one-pager, and skeleton directories. Milestone 0 (name, sentence, home) is complete; Milestone 1 (schemas) is next.
+Right now the repo is pre-v0.1 and nothing is published. Done: the name and one-pager (M0), five versioned schemas with three real manifests (M1), the hooks spike and its kill-gate (M2), and the first of the seven commands — `atlas validate` (M4.1). The dogfood month (M3) was skipped. The rest of the CLI, the packaging wrappers, and the tutorial are ahead.
 
 ---
 
@@ -29,6 +29,18 @@ atlas doctor    → health: secrets, .env gitignored, MCPs reachable, Map stalen
 ```
 
 Plus `atlas validate` for skill authors; `atlas migrate` reserved (designed in v1, built when first needed).
+
+---
+
+## Docs
+
+| Doc | For |
+|---|---|
+| [Writing a skill manifest](docs/authoring-skills.md) | Skill authors — every manifest field, the ownership matrix, a worked example |
+| [Agent adapters](docs/adapters.md) | Adapter authors — what an adapter owes, what the interface actually is today, and its known holes |
+| [Compatibility promise](docs/compatibility.md) | Everyone — what semver means here, and why an upgrade can't break your Map |
+| [The plan](docs/atlas-plan.md) · [the build plan](docs/atlas-build-plan.md) · [the one-pager](docs/one-pager.md) | The what/why, the how/when, and the short version |
+| [Decisions](docs/decisions.md) · [punt list](spec/PUNTS.md) | What was chosen and why; what was deliberately left open |
 
 ---
 

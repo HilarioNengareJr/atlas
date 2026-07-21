@@ -128,3 +128,19 @@ really about: when a repo carries its *own* `spec/`, does the repo's copy or
 the binary's win? Skew between a user's pinned schemas and a newer binary is
 exactly what `atlas migrate` was reserved for. **Forces a decision:** M4.5
 (`atlas init`, which must work on a repo that has no Atlas files at all).
+
+## P15 — `edit_event.tool` is a closed enum of one vendor's tool names (records)
+
+Found while writing the M5.4 adapter documentation. `records.schema.yaml` pins
+`edit_event.tool` to `enum: [Edit, Write, MultiEdit, NotebookEdit]` — Claude
+Code's product names, sitting in a schema the agent-agnostic core owns. A second
+adapter whose agent calls the operation `write_file` or `apply_patch` cannot emit
+a valid record without either lying about the tool name or editing a core schema,
+which is precisely the coupling the adapter boundary exists to prevent. Options:
+(a) open the field to any string and lose the typo check; (b) keep a normalized
+core verb set (`edit`/`create`/`delete`) and add an adapter-owned `tool_raw` for
+the vendor name; (c) leave it closed and let each adapter widen the enum, which
+makes the schema a registry of every supported agent. The M2 spike had one
+adapter, so nothing forced the question then. **Forces a decision:** the second
+agent adapter (v1.5) — this is the boundary test the plan says it is, and this
+field is where it will be felt first.

@@ -79,3 +79,17 @@ convention is a filesystem property no per-file schema sees. This bites at M3,
 when the Map is hand-built and hand-edited, before `atlas validate` exists.
 Interim guard: the M3 dogfood checklist should include an id↔filename sweep.
 **Forces a decision:** M3 setup (interim guard) and M4.1 (real check).
+
+## P11 — Plan/records instance schema dispatch has no location convention (plan, records)
+
+Manifests (`skills/atlas-<name>/manifest.yaml`), Map entries (`map/<type>/<id>.yaml`),
+and config (`atlas.config`) all have a stated directory/filename convention, so
+`atlas validate` can tell which schema a given file should check against just from its
+path. Plan and records instances have no such convention — nothing says where a task's
+plan or its emitted records actually live on disk. A previous (skipped) M3 architecture
+entry proposed `.atlas/plan.json` (singular, active plan) + `.atlas/plans/` (archive) +
+`.atlas/records/`, but M3 was skipped, that convention was never built or tested, and it
+uses JSON where the project's naming convention implies YAML instances elsewhere — a
+candidate, not an adopted decision. Interim: `atlas validate --schema=plan|records <file>`
+takes an explicit override. **Forces a decision:** whenever `atlas plan`/`atlas build`
+(M4.6) need a real location to write these artifacts to.
